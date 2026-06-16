@@ -171,9 +171,15 @@ export const useStore = create<StoreState>((set, get) => ({
           created_at: newIncome.createdAt,
         }]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao adicionar renda no Supabase:', error.message);
+        console.error('Detalhes:', error);
+        throw error;
+      } else {
+        console.log('✅ Renda adicionada com sucesso ao Supabase');
+      }
     } catch (err) {
-      console.error('Erro ao adicionar renda no Supabase, usando localStorage:', err);
+      console.error('Erro ao adicionar renda no Supabase, usando apenas localStorage:', err);
     }
 
     set(state => {
@@ -251,9 +257,15 @@ export const useStore = create<StoreState>((set, get) => ({
           created_at: newExpense.createdAt,
         }]);
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Erro ao adicionar despesa no Supabase:', error.message);
+        console.error('Detalhes:', error);
+        throw error;
+      } else {
+        console.log('✅ Despesa adicionada com sucesso ao Supabase');
+      }
     } catch (err) {
-      console.error('Erro ao adicionar despesa no Supabase, usando localStorage:', err);
+      console.error('Erro ao adicionar despesa no Supabase, usando apenas localStorage:', err);
     }
 
     set(state => {
