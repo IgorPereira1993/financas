@@ -94,51 +94,14 @@ interface StoreState {
   contributeToGoal: (id: string, amount: number) => void;
 }
 
-// Generate some demo data
-const today = new Date();
-const fmt = (d: Date) => d.toISOString().split('T')[0];
-const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
-const addMonths = (d: Date, n: number) => { const r = new Date(d); r.setMonth(r.getMonth() + n); return r; };
-
-const DEMO_INCOMES: Income[] = [
-  { id: uuidv4(), date: fmt(new Date(today.getFullYear(), today.getMonth(), 5)), value: 5000, description: 'Salário Março', categoryId: 'cat-sal', userId: 'user-husband', notes: '', createdAt: new Date().toISOString() },
-  { id: uuidv4(), date: fmt(new Date(today.getFullYear(), today.getMonth(), 5)), value: 3500, description: 'Salário Março', categoryId: 'cat-sal', userId: 'user-wife', notes: '', createdAt: new Date().toISOString() },
-  { id: uuidv4(), date: fmt(new Date(today.getFullYear(), today.getMonth(), 10)), value: 800, description: 'Freelance Website', categoryId: 'cat-free', userId: 'user-husband', notes: '', createdAt: new Date().toISOString() },
-  { id: uuidv4(), date: fmt(new Date(today.getFullYear(), today.getMonth(), 15)), value: 200, description: 'Dividendos', categoryId: 'cat-invest', userId: 'user-husband', notes: '', createdAt: new Date().toISOString() },
-];
-
-const DEMO_EXPENSES: Expense[] = [
-  { id: uuidv4(), purchaseDate: fmt(new Date(today.getFullYear(), today.getMonth(), 1)), dueDate: fmt(new Date(today.getFullYear(), today.getMonth(), 10)), value: 1200, description: 'Aluguel', categoryId: 'cat-alug', paymentMethod: 'transfer', userId: 'user-husband', status: 'paid', createdAt: new Date().toISOString() },
-  { id: uuidv4(), purchaseDate: fmt(new Date(today.getFullYear(), today.getMonth(), 2)), dueDate: fmt(new Date(today.getFullYear(), today.getMonth(), 15)), value: 350, description: 'Supermercado', categoryId: 'cat-alim', paymentMethod: 'debit', userId: 'user-wife', status: 'paid', createdAt: new Date().toISOString() },
-  { id: uuidv4(), purchaseDate: fmt(today), dueDate: fmt(addDays(today, 5)), value: 180, description: 'Conta de Energia', categoryId: 'cat-ener', paymentMethod: 'pix', userId: 'user-husband', status: 'pending', createdAt: new Date().toISOString() },
-  { id: uuidv4(), purchaseDate: fmt(today), dueDate: fmt(addDays(today, -2)), value: 95, description: 'Conta de Água', categoryId: 'cat-agua', paymentMethod: 'pix', userId: 'user-wife', status: 'pending', createdAt: new Date().toISOString() },
-  { id: uuidv4(), purchaseDate: fmt(today), dueDate: fmt(addDays(today, 10)), value: 120, description: 'Internet', categoryId: 'cat-inter', paymentMethod: 'debit', userId: 'user-husband', status: 'pending', createdAt: new Date().toISOString() },
-  { id: uuidv4(), purchaseDate: fmt(new Date(today.getFullYear(), today.getMonth(), 3)), dueDate: fmt(new Date(today.getFullYear(), today.getMonth(), 20)), value: 250, description: 'Farmácia', categoryId: 'cat-farm', paymentMethod: 'credit', userId: 'user-wife', status: 'pending', createdAt: new Date().toISOString() },
-  { id: uuidv4(), purchaseDate: fmt(new Date(today.getFullYear(), today.getMonth(), 8)), dueDate: fmt(new Date(today.getFullYear(), today.getMonth(), 8)), value: 200, description: 'Combustível', categoryId: 'cat-comb', paymentMethod: 'money', userId: 'user-husband', status: 'paid', createdAt: new Date().toISOString() },
-  { id: uuidv4(), purchaseDate: fmt(new Date(today.getFullYear(), today.getMonth(), 12)), dueDate: fmt(new Date(today.getFullYear(), today.getMonth(), 25)), value: 500, description: 'Escola', categoryId: 'cat-esc', paymentMethod: 'transfer', userId: 'user-wife', status: 'pending', createdAt: new Date().toISOString() },
-  { id: uuidv4(), purchaseDate: fmt(today), dueDate: fmt(addDays(today, -5)), value: 300, description: 'Plano de Saúde', categoryId: 'cat-saude', paymentMethod: 'debit', userId: 'user-husband', status: 'pending', createdAt: new Date().toISOString() },
-  { id: uuidv4(), purchaseDate: fmt(new Date(today.getFullYear(), today.getMonth(), 14)), dueDate: fmt(new Date(today.getFullYear(), today.getMonth(), 14)), value: 150, description: 'Cinema + Jantar', categoryId: 'cat-lazer', paymentMethod: 'credit', userId: 'user-wife', status: 'paid', createdAt: new Date().toISOString() },
-];
-
-const DEMO_CARDS: CreditCard[] = [
-  { id: 'card-1', name: 'Nubank', limit: 5000, closingDay: 15, dueDay: 22, color: '#8b5cf6', userId: 'user-husband', createdAt: new Date().toISOString() },
-  { id: 'card-2', name: 'Itaú', limit: 8000, closingDay: 10, dueDay: 17, color: '#f97316', userId: 'user-wife', createdAt: new Date().toISOString() },
-];
-
-const DEMO_GOALS: FinancialGoal[] = [
-  { id: 'goal-1', name: 'Comprar Carro', targetValue: 30000, currentValue: 12000, targetDate: fmt(addMonths(today, 18)), description: 'Novo carro da família', icon: '🚗', color: '#3b82f6', userId: 'user-husband', createdAt: new Date().toISOString() },
-  { id: 'goal-2', name: 'Viagem de Férias', targetValue: 8000, currentValue: 3200, targetDate: fmt(addMonths(today, 6)), description: 'Viagem para a praia', icon: '✈️', color: '#10b981', userId: 'user-wife', createdAt: new Date().toISOString() },
-  { id: 'goal-3', name: 'Reforma da Casa', targetValue: 15000, currentValue: 5500, targetDate: fmt(addMonths(today, 12)), description: 'Reforma da sala e cozinha', icon: '🏠', color: '#f59e0b', userId: 'user-husband', createdAt: new Date().toISOString() },
-];
-
 export const useStore = create<StoreState>((set, get) => ({
   currentUser: null,
   users: loadFromStorage('users', DEFAULT_USERS),
   categories: DEFAULT_CATEGORIES,
-  incomes: loadFromStorage('incomes', DEMO_INCOMES),
-  expenses: loadFromStorage('expenses', DEMO_EXPENSES),
-  cards: loadFromStorage('cards', DEMO_CARDS),
-  goals: loadFromStorage('goals', DEMO_GOALS),
+  incomes: loadFromStorage('incomes', []),
+  expenses: loadFromStorage('expenses', []),
+  cards: loadFromStorage('cards', []),
+  goals: loadFromStorage('goals', []),
   installmentGroups: loadFromStorage('installmentGroups', []),
   settings: loadFromStorage('settings', { darkMode: false, currency: 'BRL', language: 'pt-BR' }),
 
