@@ -1,6 +1,12 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../lib/supabase';
+import {
+  fetchExpenses,
+  fetchIncomes,
+  fetchCards,
+  fetchGoals,
+} from '../services/supabaseService';
 import type {
   User, Income, Expense, CreditCard, FinancialGoal,
   Category, InstallmentGroup, AppSettings
@@ -56,6 +62,7 @@ interface StoreState {
   users: User[];
   login: (role: 'husband' | 'wife', password: string) => boolean;
   logout: () => void;
+  loadRemoteData: (userId: string) => Promise<void>;
   updateUser: (id: string, data: Partial<User>) => void;
 
   // Data
@@ -92,6 +99,7 @@ interface StoreState {
   updateGoal: (id: string, goal: Partial<FinancialGoal>) => void;
   deleteGoal: (id: string) => void;
   contributeToGoal: (id: string, amount: number) => void;
+  loadRemoteData: (userId: string) => Promise<void>;
 }
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -106,16 +114,37 @@ export const useStore = create<StoreState>((set, get) => ({
   settings: loadFromStorage('settings', { darkMode: false, currency: 'BRL', language: 'pt-BR' }),
 
   login: (role, password) => {
-    const { users } = get();
+    const { users, loadRemoteData } = get();
     const user = users.find(u => u.role === role && u.password === password);
     if (user) {
       set({ currentUser: user });
+      loadRemoteData(user.id).catch(err => console.error('Erro ao carregar dados após login:', err));
       return true;
     }
     return false;
   },
 
   logout: () => set({ currentUser: null }),
+
+  loadRemoteData: async (userId) => {
+    try {
+      const [incomes, expenses, cards, goals] = await Promise.all([
+        fetchIncomes(userId),
+        fetchExpenses(userId),
+        fetchCards(userId),
+        fetchGoals(userId),
+      ]);
+
+      saveToStorage('incomes', incomes);
+      saveToStorage('expenses', expenses);
+      saveToStorage('cards', cards);
+      saveToStorage('goals', goals);
+
+      set({ incomes, expenses, cards, goals });
+    } catch (err) {
+      console.error('Erro ao carregar dados do Supabase:', err);
+    }
+  },
 
   updateUser: async (id, data) => {
     try {
