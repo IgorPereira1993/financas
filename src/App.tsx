@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useStore } from './store/useStore';
 import { isOverdue, isDueSoon } from './utils/formatters';
+import { useSyncOnline } from './hooks/useSyncOnline';
 import LoginPage from './components/LoginPage';
 import Layout, { type Page } from './components/Layout';
 import Dashboard from './components/Dashboard';
@@ -16,6 +17,9 @@ export default function App() {
   const { currentUser, expenses, cards, goals, settings } = useStore();
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const dark = settings.darkMode;
+
+  // Sincronizar dados quando internet volta
+  useSyncOnline();
 
   // Apply dark mode to document
   useEffect(() => {
