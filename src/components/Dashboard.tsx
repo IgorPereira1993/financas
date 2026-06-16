@@ -13,7 +13,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (p: any) => void
   const currentMonth = getCurrentMonth();
 
   const monthIncomes = useMemo(() => incomes.filter(i => i.date.startsWith(currentMonth)), [incomes, currentMonth]);
-  const monthExpenses = useMemo(() => expenses.filter(e => e.purchaseDate.startsWith(currentMonth)), [expenses, currentMonth]);
+  const monthExpenses = useMemo(() => expenses.filter(e => e.dueDate.startsWith(currentMonth)), [expenses, currentMonth]);
 
   const totalIncome = useMemo(() => monthIncomes.reduce((s, i) => s + i.value, 0), [monthIncomes]);
   const totalExpense = useMemo(() => monthExpenses.reduce((s, e) => s + e.value, 0), [monthExpenses]);
@@ -26,7 +26,7 @@ export default function Dashboard({ onNavigate }: { onNavigate: (p: any) => void
   const last6 = getLast6Months();
   const chartData = useMemo(() => last6.map(month => {
     const inc = incomes.filter(i => i.date.startsWith(month)).reduce((s, i) => s + i.value, 0);
-    const exp = expenses.filter(e => e.purchaseDate.startsWith(month)).reduce((s, e) => s + e.value, 0);
+    const exp = expenses.filter(e => e.dueDate.startsWith(month)).reduce((s, e) => s + e.value, 0);
     const [y, m] = month.split('-');
     const date = new Date(parseInt(y), parseInt(m) - 1, 1);
     return {
