@@ -9,7 +9,7 @@ import {
 } from '../services/supabaseService';
 import type {
   User, Income, Expense, CreditCard, FinancialGoal,
-  Category, InstallmentGroup, AppSettings
+  Category, InstallmentGroup, AppSettings, UserRole
 } from '../types';
 
 const DEFAULT_CATEGORIES: Category[] = [
@@ -60,10 +60,11 @@ interface StoreState {
   // Auth
   currentUser: User | null;
   users: User[];
-  login: (role: 'husband' | 'wife', password: string) => boolean;
+  login: (userIdOrRole: string, password: string) => boolean;
   logout: () => void;
   resetAllData: () => Promise<void>;
   loadRemoteData: (userId: string) => Promise<void>;
+  createUser: (user: { name: string; role: UserRole; password: string; avatar?: string; color?: string }) => Promise<boolean>;
   updateUser: (id: string, data: Partial<User>) => void;
 
   // Data
@@ -114,9 +115,9 @@ export const useStore = create<StoreState>((set, get) => ({
   installmentGroups: loadFromStorage('installmentGroups', []),
   settings: loadFromStorage('settings', { darkMode: false, currency: 'BRL', language: 'pt-BR' }),
 
-  login: (role, password) => {
+  login: (userIdOrRole, password) => {
     const { users, loadRemoteData } = get();
-    const user = users.find(u => u.role === role && u.password === password);
+    const user = users.find(u => (u.id === userIdOrRole || u.role === userIdOrRole) && u.password === password);
     if (user) {
       set({ currentUser: user });
       loadRemoteData(user.id).catch(err => console.error('Erro ao carregar dados após login:', err));
@@ -126,6 +127,43 @@ export const useStore = create<StoreState>((set, get) => ({
   },
 
   logout: () => set({ currentUser: null }),
+
+  createUser: async (userData) => {
+    const name = userData.name.trim();
+    if (!name || userData.password.length < 4) return false;
+
+    const role: UserRole = userData.role === 'husband' || userData.role === 'wife' ? userData.role : 'wife';
+    const avatar = userData.avatar || (role === 'husband' ? '👨' : '👩');
+    const color = userData.color || (role === 'husband' ? '#3b82f6' : '#ec4899');
+    const id = `user-${name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-${Math.random().toString(36).slice(2, 8)}`;
+
+    const newUser: User = {
+      id,
+      name,
+      role,
+      password: userData.password,
+      avatar,
+      color,
+    };
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .insert([{ id: newUser.id, name: newUser.name, role: newUser.role, password: newUser.password, avatar: newUser.avatar, color: newUser.color }]);
+
+      if (error) throw error;
+    } catch (err) {
+      console.error('Erro ao criar usuário no Supabase:', err);
+    }
+
+    set(state => {
+      const users = [...state.users, newUser];
+      saveToStorage('users', users);
+      return { users };
+    });
+
+    return true;
+  },
 
   resetAllData: async () => {
     const { users } = get();

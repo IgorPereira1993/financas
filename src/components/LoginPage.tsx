@@ -3,7 +3,8 @@ import { useStore } from '../store/useStore';
 import { Eye, EyeOff, TrendingUp } from 'lucide-react';
 
 export default function LoginPage() {
-  const [selectedRole, setSelectedRole] = useState<'husband' | 'wife' | null>(null);
+  const users = useStore(s => s.users);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -12,13 +13,13 @@ export default function LoginPage() {
   const dark = settings.darkMode;
 
   const handleLogin = () => {
-    if (!selectedRole) { setError('Selecione um usuário'); return; }
-    const ok = login(selectedRole, password);
+    if (!selectedUserId) { setError('Selecione um usuário'); return; }
+    const ok = login(selectedUserId, password);
     if (!ok) { setError('Senha incorreta. Tente novamente.'); }
   };
 
-  const handleSelect = (role: 'husband' | 'wife') => {
-    setSelectedRole(role);
+  const handleSelect = (userId: string) => {
+    setSelectedUserId(userId);
     setPassword('');
     setError('');
   };
@@ -44,53 +45,40 @@ export default function LoginPage() {
 
           {/* User Selection */}
           <div className="grid grid-cols-2 gap-4 mb-6">
-            <button
-              onClick={() => handleSelect('husband')}
-              className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer ${
-                selectedRole === 'husband'
-                  ? 'border-blue-500 bg-blue-50 shadow-md scale-105'
-                  : dark
-                  ? 'border-gray-700 bg-gray-800 hover:border-blue-400'
-                  : 'border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-50'
-              }`}
-            >
-              <span className="text-5xl">👨</span>
-              <div>
-                <p className={`font-semibold text-sm ${dark ? 'text-white' : 'text-gray-800'}`}>Marido</p>
-                <p className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Usuário 1</p>
-              </div>
-              {selectedRole === 'husband' && (
-                <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
-                  <span className="text-white text-xs">✓</span>
-                </div>
-              )}
-            </button>
-
-            <button
-              onClick={() => handleSelect('wife')}
-              className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer ${
-                selectedRole === 'wife'
-                  ? 'border-pink-500 bg-pink-50 shadow-md scale-105'
-                  : dark
-                  ? 'border-gray-700 bg-gray-800 hover:border-pink-400'
-                  : 'border-gray-200 bg-gray-50 hover:border-pink-300 hover:bg-pink-50'
-              }`}
-            >
-              <span className="text-5xl">👩</span>
-              <div>
-                <p className={`font-semibold text-sm ${dark ? 'text-white' : 'text-gray-800'}`}>Esposa</p>
-                <p className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'}`}>Usuário 2</p>
-              </div>
-              {selectedRole === 'wife' && (
-                <div className="w-5 h-5 rounded-full bg-pink-500 flex items-center justify-center">
-                  <span className="text-white text-xs">✓</span>
-                </div>
-              )}
-            </button>
+            {users.map(user => {
+              const isSelected = selectedUserId === user.id;
+              const isHusband = user.role === 'husband';
+              return (
+                <button
+                  key={user.id}
+                  onClick={() => handleSelect(user.id)}
+                  className={`flex flex-col items-center gap-3 p-5 rounded-2xl border-2 transition-all duration-200 cursor-pointer ${
+                    isSelected
+                      ? isHusband
+                        ? 'border-blue-500 bg-blue-50 shadow-md scale-105'
+                        : 'border-pink-500 bg-pink-50 shadow-md scale-105'
+                      : dark
+                      ? 'border-gray-700 bg-gray-800 hover:border-blue-400'
+                      : 'border-gray-200 bg-gray-50 hover:border-blue-300 hover:bg-blue-50'
+                  }`}
+                >
+                  <span className="text-5xl">{user.avatar}</span>
+                  <div>
+                    <p className={`font-semibold text-sm ${dark ? 'text-white' : 'text-gray-800'}`}>{user.name}</p>
+                    <p className={`text-xs ${dark ? 'text-gray-400' : 'text-gray-500'}`}>{user.role === 'husband' ? 'Marido' : 'Esposa'}</p>
+                  </div>
+                  {isSelected && (
+                    <div className={`w-5 h-5 rounded-full flex items-center justify-center ${isHusband ? 'bg-blue-500' : 'bg-pink-500'}`}>
+                      <span className="text-white text-xs">✓</span>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           {/* Password */}
-          {selectedRole && (
+          {selectedUserId && (
             <div className="mb-4 animate-in fade-in duration-200">
               <label className={`block text-sm font-medium mb-2 ${dark ? 'text-gray-300' : 'text-gray-700'}`}>
                 Senha
@@ -121,7 +109,7 @@ export default function LoginPage() {
 
           <button
             onClick={handleLogin}
-            disabled={!selectedRole}
+            disabled={!selectedUserId}
             className="w-full py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg shadow-blue-200"
           >
             Entrar

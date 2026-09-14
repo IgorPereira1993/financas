@@ -3,9 +3,16 @@ import { useStore } from '../store/useStore';
 import { Eye, EyeOff, User, Shield, Moon, Sun, Trash2, AlertTriangle } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { users, currentUser, updateUser, toggleDarkMode, resetAllData, settings: { darkMode } } = useStore();
+  const { users, currentUser, updateUser, toggleDarkMode, resetAllData, createUser, settings: { darkMode } } = useStore();
   const dark = darkMode;
 
+  const [newUser, setNewUser] = useState({
+    name: '',
+    password: '',
+    confirmPassword: '',
+    role: 'husband' as 'husband' | 'wife',
+    avatar: '👨',
+  });
   const [passwords, setPasswords] = useState<Record<string, { current: string; new1: string; new2: string; show: boolean }>>({
     'user-husband': { current: '', new1: '', new2: '', show: false },
     'user-wife': { current: '', new1: '', new2: '', show: false },
@@ -39,6 +46,38 @@ export default function SettingsPage() {
     updateUser(userId, { password: new1 });
     setPasswords(p => ({ ...p, [userId]: { current: '', new1: '', new2: '', show: false } }));
     showFeedback(userId, 'Senha alterada com sucesso! ✓');
+  };
+
+  const handleCreateUser = async () => {
+    const name = newUser.name.trim();
+    if (!name) {
+      setFeedback(f => ({ ...f, createUser: 'Informe o nome do usuário.' }));
+      return;
+    }
+    if (newUser.password.length < 4) {
+      setFeedback(f => ({ ...f, createUser: 'A senha deve ter pelo menos 4 caracteres.' }));
+      return;
+    }
+    if (newUser.password !== newUser.confirmPassword) {
+      setFeedback(f => ({ ...f, createUser: 'As senhas não coincidem.' }));
+      return;
+    }
+
+    const created = await createUser({
+      name,
+      role: newUser.role,
+      password: newUser.password,
+      avatar: newUser.avatar,
+      color: newUser.role === 'husband' ? '#3b82f6' : '#ec4899',
+    });
+
+    if (created) {
+      setNewUser({ name: '', password: '', confirmPassword: '', role: 'husband', avatar: '👨' });
+      setFeedback(f => ({ ...f, createUser: 'Usuário criado com sucesso.' }));
+      setTimeout(() => setFeedback(f => ({ ...f, createUser: '' })), 3000);
+    } else {
+      setFeedback(f => ({ ...f, createUser: 'Não foi possível criar o usuário.' }));
+    }
   };
 
   const handleResetData = async () => {
@@ -141,6 +180,84 @@ export default function SettingsPage() {
           </div>
         </div>
       ))}
+
+      <div className={card}>
+        <div className="flex items-center gap-3 mb-4">
+          <div className={`p-2 rounded-xl ${dark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+            <User size={18} className="text-blue-500" />
+          </div>
+          <h2 className={`font-bold ${dark ? 'text-white' : 'text-gray-800'}`}>Criar Usuário</h2>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label className={`block text-xs font-medium mb-1.5 ${dark ? 'text-gray-300' : 'text-gray-700'}`}>Nome</label>
+            <input
+              value={newUser.name}
+              onChange={e => setNewUser(u => ({ ...u, name: e.target.value }))}
+              placeholder="Ex: João"
+              className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none ${dark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200'}`}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className={`block text-xs font-medium mb-1.5 ${dark ? 'text-gray-300' : 'text-gray-700'}`}>Tipo</label>
+              <select
+                value={newUser.role}
+                onChange={e => {
+                  const role = e.target.value as 'husband' | 'wife';
+                  setNewUser(u => ({ ...u, role, avatar: role === 'husband' ? '👨' : '👩' }));
+                }}
+                className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none ${dark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200'}`}
+              >
+                <option value="husband">Marido</option>
+                <option value="wife">Esposa</option>
+              </select>
+            </div>
+
+            <div>
+              <label className={`block text-xs font-medium mb-1.5 ${dark ? 'text-gray-300' : 'text-gray-700'}`}>Avatar</label>
+              <input
+                value={newUser.avatar}
+                maxLength={2}
+                onChange={e => setNewUser(u => ({ ...u, avatar: e.target.value || '👨' }))}
+                className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none ${dark ? 'bg-gray-800 border-gray-700 text-white' : 'bg-gray-50 border-gray-200'}`}
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className={`block text-xs font-medium mb-1.5 ${dark ? 'text-gray-300' : 'text-gray-700'}`}>Senha</label>
+            <input
+              type="password"
+              value={newUser.password}
+              onChange={e => setNewUser(u => ({ ...u, password: e.target.value }))}
+              placeholder="Mínimo 4 caracteres"
+              className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none ${dark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200'}`}
+            />
+          </div>
+
+          <div>
+            <label className={`block text-xs font-medium mb-1.5 ${dark ? 'text-gray-300' : 'text-gray-700'}`}>Confirmar senha</label>
+            <input
+              type="password"
+              value={newUser.confirmPassword}
+              onChange={e => setNewUser(u => ({ ...u, confirmPassword: e.target.value }))}
+              placeholder="Repita a senha"
+              className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none ${dark ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200'}`}
+            />
+          </div>
+
+          <button onClick={handleCreateUser} className="w-full px-4 py-2.5 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium transition-colors cursor-pointer">
+            Criar Usuário
+          </button>
+
+          {feedback.createUser && (
+            <p className={`text-xs ${feedback.createUser.includes('sucesso') ? 'text-green-500' : 'text-red-500'}`}>{feedback.createUser}</p>
+          )}
+        </div>
+      </div>
 
       {/* Danger zone */}
       <div className={`rounded-2xl border ${dark ? 'bg-gray-900 border-red-900' : 'bg-white border-red-200'} shadow-sm p-5`}>
