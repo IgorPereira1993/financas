@@ -173,10 +173,15 @@ export const useStore = create<StoreState>((set, get) => ({
       ]);
 
       const currentState = get();
-      const mergedIncomes = currentState.incomes.filter(item => item.userId === userId).length ? currentState.incomes.filter(item => item.userId === userId) : incomes;
-      const mergedExpenses = currentState.expenses.filter(item => item.userId === userId).length ? currentState.expenses.filter(item => item.userId === userId) : expenses;
-      const mergedCards = currentState.cards.filter(item => item.userId === userId).length ? currentState.cards.filter(item => item.userId === userId) : cards;
-      const mergedGoals = currentState.goals.filter(item => item.userId === userId).length ? currentState.goals.filter(item => item.userId === userId) : goals;
+      const localIncomes = currentState.incomes.filter(item => item.userId === userId);
+      const localExpenses = currentState.expenses.filter(item => item.userId === userId);
+      const localCards = currentState.cards.filter(item => item.userId === userId);
+      const localGoals = currentState.goals.filter(item => item.userId === userId);
+
+      const mergedIncomes = [...localIncomes, ...incomes.filter(item => !localIncomes.some(local => local.id === item.id))];
+      const mergedExpenses = [...localExpenses, ...expenses.filter(item => !localExpenses.some(local => local.id === item.id))];
+      const mergedCards = [...localCards, ...cards.filter(item => !localCards.some(local => local.id === item.id))];
+      const mergedGoals = [...localGoals, ...goals.filter(item => !localGoals.some(local => local.id === item.id))];
 
       saveToStorage('incomes', mergedIncomes);
       saveToStorage('expenses', mergedExpenses);
