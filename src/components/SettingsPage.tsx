@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore';
 import { Eye, EyeOff, User, Shield, Moon, Sun, Trash2, AlertTriangle } from 'lucide-react';
 
 export default function SettingsPage() {
-  const { users, currentUser, updateUser, toggleDarkMode, settings: { darkMode } } = useStore();
+  const { users, currentUser, updateUser, toggleDarkMode, resetAllData, settings: { darkMode } } = useStore();
   const dark = darkMode;
 
   const [passwords, setPasswords] = useState<Record<string, { current: string; new1: string; new2: string; show: boolean }>>({
@@ -41,8 +41,8 @@ export default function SettingsPage() {
     showFeedback(userId, 'Senha alterada com sucesso! ✓');
   };
 
-  const handleResetData = () => {
-    localStorage.clear();
+  const handleResetData = async () => {
+    await resetAllData();
     window.location.reload();
   };
 

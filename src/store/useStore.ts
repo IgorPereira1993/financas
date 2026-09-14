@@ -62,6 +62,7 @@ interface StoreState {
   users: User[];
   login: (role: 'husband' | 'wife', password: string) => boolean;
   logout: () => void;
+  resetAllData: () => Promise<void>;
   loadRemoteData: (userId: string) => Promise<void>;
   updateUser: (id: string, data: Partial<User>) => void;
 
@@ -126,6 +127,42 @@ export const useStore = create<StoreState>((set, get) => ({
 
   logout: () => set({ currentUser: null }),
 
+  resetAllData: async () => {
+    const { users } = get();
+    const userIds = users.map(u => u.id);
+
+    try {
+      await Promise.all([
+        supabase.from('incomes').delete().in('user_id', userIds),
+        supabase.from('expenses').delete().in('user_id', userIds),
+        supabase.from('credit_cards').delete().in('user_id', userIds),
+        supabase.from('financial_goals').delete().in('user_id', userIds),
+        supabase.from('installment_groups').delete().in('user_id', userIds),
+      ]);
+    } catch (err) {
+      console.error('Erro ao limpar dados no Supabase:', err);
+    }
+
+    localStorage.clear();
+    set({
+      currentUser: null,
+      incomes: [],
+      expenses: [],
+      cards: [],
+      goals: [],
+      installmentGroups: [],
+      settings: { darkMode: false, currency: 'BRL', language: 'pt-BR' },
+      users: DEFAULT_USERS,
+    });
+    saveToStorage('users', DEFAULT_USERS);
+    saveToStorage('incomes', []);
+    saveToStorage('expenses', []);
+    saveToStorage('cards', []);
+    saveToStorage('goals', []);
+    saveToStorage('installmentGroups', []);
+    saveToStorage('settings', { darkMode: false, currency: 'BRL', language: 'pt-BR' });
+  },
+
   loadRemoteData: async (userId) => {
     try {
       const [incomes, expenses, cards, goals] = await Promise.all([
@@ -135,12 +172,18 @@ export const useStore = create<StoreState>((set, get) => ({
         fetchGoals(userId),
       ]);
 
-      saveToStorage('incomes', incomes);
-      saveToStorage('expenses', expenses);
-      saveToStorage('cards', cards);
-      saveToStorage('goals', goals);
+      const currentState = get();
+      const mergedIncomes = currentState.incomes.filter(item => item.userId === userId).length ? currentState.incomes.filter(item => item.userId === userId) : incomes;
+      const mergedExpenses = currentState.expenses.filter(item => item.userId === userId).length ? currentState.expenses.filter(item => item.userId === userId) : expenses;
+      const mergedCards = currentState.cards.filter(item => item.userId === userId).length ? currentState.cards.filter(item => item.userId === userId) : cards;
+      const mergedGoals = currentState.goals.filter(item => item.userId === userId).length ? currentState.goals.filter(item => item.userId === userId) : goals;
 
-      set({ incomes, expenses, cards, goals });
+      saveToStorage('incomes', mergedIncomes);
+      saveToStorage('expenses', mergedExpenses);
+      saveToStorage('cards', mergedCards);
+      saveToStorage('goals', mergedGoals);
+
+      set({ incomes: mergedIncomes, expenses: mergedExpenses, cards: mergedCards, goals: mergedGoals });
     } catch (err) {
       console.error('Erro ao carregar dados do Supabase:', err);
     }
